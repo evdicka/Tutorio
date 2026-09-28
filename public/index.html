@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TutorHub — Lerne von deinen Mitschülern</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <a href="/index.html" class="brand">📘 TutorHub</a>
+    <nav>
+      <a href="/index.html">Startseite</a>
+      <a href="/requests.html">Hilfsgesuche</a>
+      <span id="nav-auth"></span>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div style="text-align:center; margin-bottom:32px;">
+      <h1>Lerne von deinen Mitschülern</h1>
+      <p>Verbinde dich mit Mitschülern, die in Fächern gut sind, bei denen du Hilfe brauchst.</p>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Suche nach Tutoren oder Fächern...">
+    </div>
+
+    <div class="filters">
+      <label for="subject-filter">Fach</label>
+      <select id="subject-filter">
+        <option value="">Alle Fächer</option>
+      </select>
+    </div>
+
+    <h2>Verfügbare Tutoren</h2>
+    <div id="tutor-list" class="card-grid">Lade Tutoren…</div>
+
+    <div class="cta-banner">
+      <h2>Möchtest du Tutor werden?</h2>
+      <p>Teile dein Wissen und hilf deinen Mitschülern beim Erfolg.</p>
+      <a href="/profile-edit.html" class="btn btn-accent">Loslegen</a>
+    </div>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/tutors.js"></script>
+</body>
+</html>

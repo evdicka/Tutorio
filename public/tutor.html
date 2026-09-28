@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutorprofil — TutorHub</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <a href="/index.html" class="brand">📘 TutorHub</a>
+    <nav>
+      <a href="/index.html">Startseite</a>
+      <a href="/requests.html">Hilfsgesuche</a>
+      <span id="nav-auth"></span>
+    </nav>
+  </header>
+
+  <main class="page" style="max-width:680px;">
+    <div id="profile" class="tutor-card">Lade Profil…</div>
+
+    <div class="tutor-card">
+      <h3>Tutor bewerten</h3>
+      <form id="rating-form">
+        <label for="stars">Sterne (1–5)</label>
+        <input type="number" id="stars" min="1" max="5" required>
+        <label for="rating-comment">Kommentar (optional)</label>
+        <textarea id="rating-comment" rows="2"></textarea>
+        <button type="submit" class="btn btn-primary">Bewertung abschicken</button>
+        <p id="rating-message" class="form-message"></p>
+      </form>
+    </div>
+
+    <button id="report-btn" class="btn btn-danger-outline">Diesen Tutor melden</button>
+  </main>
+
+  <dialog id="report-modal">
+    <h2>Tutor melden</h2>
+    <form id="report-form">
+      <label for="report-reason">Grund der Meldung</label>
+      <textarea id="report-reason" rows="3" required></textarea>
+      <button type="submit" class="btn btn-primary">Melden</button>
+      <button type="button" id="close-report-btn" class="btn btn-outline">Abbrechen</button>
+      <p id="report-message" class="form-message"></p>
+    </form>
+  </dialog>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/tutor-profile.js"></script>
+</body>
+</html>

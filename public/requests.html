@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hilfsgesuche — TutorHub</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <a href="/index.html" class="brand">📘 TutorHub</a>
+    <nav>
+      <a href="/index.html">Startseite</a>
+      <a href="/requests.html">Hilfsgesuche</a>
+      <span id="nav-auth"></span>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1>Hilfsgesuche</h1>
+        <p>Durchsuche Hilfsgesuche von Schülern oder erstelle dein eigenes</p>
+      </div>
+      <button id="open-create-btn" class="btn btn-primary">+ Gesuch erstellen</button>
+    </div>
+
+    <div class="filters">
+      <label for="subject-filter">Nach Fach filtern</label>
+      <select id="subject-filter">
+        <option value="">Alle Fächer</option>
+      </select>
+    </div>
+
+    <div id="request-list">Lade Gesuche…</div>
+  </main>
+
+  <dialog id="create-modal">
+    <h2>Hilfsgesuch erstellen</h2>
+    <p>Beschreibe, wobei du Hilfe brauchst, und andere Schüler werden antworten.</p>
+    <form id="create-form">
+      <label for="new-subject">Fach</label>
+      <select id="new-subject" required>
+        <option value="">Wähle ein Fach</option>
+      </select>
+
+      <label for="new-title">Titel</label>
+      <input type="text" id="new-title" placeholder="z.B., Ich brauche Hilfe bei IPv4" required>
+
+      <label for="new-description">Beschreibung</label>
+      <textarea id="new-description" rows="4" placeholder="Beschreibe deine Frage oder wobei du Schwierigkeiten hast..." required></textarea>
+
+      <button type="submit" class="btn btn-primary">Gesuch veröffentlichen</button>
+      <button type="button" id="close-modal-btn" class="btn btn-outline">Abbrechen</button>
+      <p id="create-error" class="form-message error"></p>
+    </form>
+  </dialog>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/requests.js"></script>
+</body>
+</html>
