@@ -30,3 +30,10 @@ async function renderNavAuth() {
 }
 
 renderNavAuth();
+
+(function renderFooter() {
+  const footer = document.createElement('footer');
+  footer.style.cssText = 'text-align:center; padding:24px 16px; font-size:0.85rem;';
+  footer.innerHTML = '<a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a>';
+  document.body.appendChild(footer);
+})();
