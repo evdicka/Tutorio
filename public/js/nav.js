@@ -23,7 +23,7 @@ async function renderNavAuth() {
 
     const user = await response.json();
     slot.innerHTML = `
-      span>${escapeHtml(user.name)}</span>
+      <span>${escapeHtml(user.name)}</span>
       <button id="logout-btn" class="btn btn-outline">Abmelden</button>
     `;
 

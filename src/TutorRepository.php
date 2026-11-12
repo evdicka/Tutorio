@@ -21,7 +21,7 @@ final class TutorRepository
     public function search(?string $query, ?int $subjectId): array
     {
         $sql = "
-            SELECT DISTINCT u.id AS tutor_id, u.display_name, tp.description, tp.availability
+            SELECT DISTINCT u.id AS tutor_id, u.display_name, tp.description, tp.availability, tp.price_model 
             FROM users u
             INNER JOIN tutor_profiles tp ON tp.user_id = u.id
             LEFT JOIN tutor_subjects ts ON ts.tutor_id = u.id
@@ -31,8 +31,9 @@ final class TutorRepository
         $params = [];
 
         if ($query !== null && $query !== '') {
-            $sql .= ' AND (u.display_name LIKE :query OR s.name LIKE :query) ';
-            $params['query'] = "%{$query}%";
+            $sql .= ' AND (u.display_name LIKE :query_name OR s.name LIKE :query_subject) ';
+            $params['query_name'] = "%{$query}%";
+            $params['query_subject'] = "%{$query}%";
         }
 
         if ($subjectId !== null) {
@@ -73,7 +74,7 @@ final class TutorRepository
     public function findPublicById(int $tutorId): ?array
     {
         $stmt = $this->db->prepare('
-            SELECT u.id AS tutor_id, u.display_name, tp.description, tp.availability
+            SELECT u.id AS tutor_id, u.display_name, tp.description, tp.availability, tp.price_model
             FROM users u
             INNER JOIN tutor_profiles tp ON tp.user_id = u.id
             WHERE u.id = :id AND u.role = "tutor"
@@ -100,7 +101,7 @@ final class TutorRepository
     public function findOwnProfile(int $userId): array
     {
         $stmt = $this->db->prepare('
-            SELECT u.id AS tutor_id, u.display_name, tp.description, tp.availability
+            SELECT u.id AS tutor_id, u.display_name, tp.description, tp.availability, tp.price_model
             FROM users u
             LEFT JOIN tutor_profiles tp ON tp.user_id = u.id
             WHERE u.id = :id
@@ -118,24 +119,27 @@ final class TutorRepository
      * und ersetzt die Fach-Zuordnungen. Alles in einer Transaktion, damit
      * nie ein halb gespeicherter Zustand entsteht (z. B. Profil ohne Fächer).
      */
-    public function upsertProfile(int $userId, string $description, string $availability, array $subjectIds): void
+    public function upsertProfile(int $userId, string $description, string $availability, string $priceModel, array $subjectIds): void
     {
         $this->db->beginTransaction();
 
         try {
             $stmt = $this->db->prepare('
-                INSERT INTO tutor_profiles (user_id, description, availability)
-                VALUES (:user_id, :description, :availability)
+                INSERT INTO tutor_profiles (user_id, description, availability, price_model)
+                VALUES (:user_id, :description, :availability, :price_model)
                 ON DUPLICATE KEY UPDATE
                     description = :description2,
-                    availability = :availability2
+                    availability = :availability2,
+                    price_model = :price_model2
             ');
             $stmt->execute([
                 'user_id' => $userId,
                 'description' => $description,
                 'availability' => $availability,
+                'price_model' => $priceModel,
                 'description2' => $description,
                 'availability2' => $availability,
+                'price_model2' => $priceModel,
             ]);
 
             $this->db->prepare('DELETE FROM tutor_subjects WHERE tutor_id = :id')

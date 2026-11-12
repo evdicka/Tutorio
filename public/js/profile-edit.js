@@ -1,6 +1,7 @@
 const form = document.getElementById('profile-form');
 const descriptionField = document.getElementById('description');
 const availabilityField = document.getElementById('availability');
+const priceModelField = document.getElementById('price-model');
 const checkboxContainer = document.getElementById('subject-checkboxes');
 const message = document.getElementById('form-message');
 
@@ -29,6 +30,7 @@ async function init() {
 
   descriptionField.value = ownProfile.description ?? '';
   availabilityField.value = ownProfile.availability ?? '';
+  priceModelField.value = ownProfile.price_model ?? '';
 }
 
 form.addEventListener('submit', async (event) => {
@@ -45,6 +47,7 @@ form.addEventListener('submit', async (event) => {
     body: JSON.stringify({
       description: descriptionField.value,
       availability: availabilityField.value,
+      price_model: priceModelField.value,
       subject_ids: selectedSubjectIds,
     }),
   });

@@ -40,6 +40,7 @@ function renderProfile(tutor) {
     <div class="subjects">${subjectsHtml}</div>
     <p><strong>Verfügbarkeit:</strong> ${escapeHtml(tutor.availability ?? '–')}</p>
     <p><strong>Preismodell:</strong> ${escapeHtml(tutor.price_model ?? '–')}</p>
+    <p><strong>Preismodell:</strong> ${escapeHtml(tutor.price_model ?? '–')}</p>
     <h3>Bewertungen</h3>
     ${ratingsHtml}
   `;

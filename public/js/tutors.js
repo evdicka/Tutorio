@@ -47,6 +47,7 @@ function renderTutorCard(tutor) {
       <div class="subjects">${subjectTags}</div>
       <p>${escapeHtml(tutor.description)}</p>
       <p><strong>Verfügbar:</strong> ${escapeHtml(tutor.availability ?? '–')}</p>
+       <p><strong>Preismodell:</strong> ${escapeHtml(tutor.price_model ?? '–')}</p>
       <p><strong>Preismodell:</strong> ${escapeHtml(tutor.price_model ?? '–')}</p>
       <a href="/tutor.html?id=${tutor.tutor_id}" class="btn btn-primary">Profil ansehen</a>
     </div>
