@@ -17,7 +17,7 @@ async function loadProfile() {
 }
 
 function renderProfile(tutor) {
-  const subjectsHtml = tutor.subjects.map((s) => `<span class="tag">${s.name}</span>`).join('');
+  const subjectsHtml = tutor.subjects.map((s) => `<span class="tag">${escapeHtml(s.name)}</span>`).join('');
   const avgText = tutor.rating.avg !== null
     ? `⭐ ${tutor.rating.avg} (${tutor.rating.count} Bewertungen)`
     : 'Noch keine Bewertungen';
@@ -25,20 +25,21 @@ function renderProfile(tutor) {
   const ratingsHtml = tutor.ratings.length > 0
     ? tutor.ratings.map((r) => `
         <div class="rating">
-          ${'⭐'.repeat(r.stars)} — ${r.comment ?? ''}
-          <br><small>${r.rater_name}</small>
+          ${'⭐'.repeat(r.stars)} — ${escapeHtml(r.comment)}
+          <br><small>${escapeHtml(r.rater_name)}</small>
         </div>
       `).join('')
     : '<p class="empty-state">Noch keine Bewertungen.</p>';
 
   return `
     <a href="/index.html">← Zurück zu den Tutoren</a>
-    <h2>${tutor.display_name}</h2>
+    <h2>${escapeHtml(tutor.display_name)}</h2>
     <p>${avgText}</p>
-    <p>${tutor.description ?? ''}</p>
+    <p>${escapeHtml(tutor.description)}</p>
     <h3>Fächer</h3>
     <div class="subjects">${subjectsHtml}</div>
-    <p><strong>Verfügbarkeit:</strong> ${tutor.availability ?? '–'}</p>
+    <p><strong>Verfügbarkeit:</strong> ${escapeHtml(tutor.availability ?? '–')}</p>
+    <p><strong>Preismodell:</strong> ${escapeHtml(tutor.price_model ?? '–')}</p>
     <h3>Bewertungen</h3>
     ${ratingsHtml}
   `;

@@ -1,3 +1,10 @@
+// Maskiert Sonderzeichen, bevor Nutzertext per innerHTML eingefügt wird (Schutz vor XSS).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
 // Wird auf jeder Seite eingebunden. Prüft per /api/me.php, ob eine
 // gültige Session existiert, und füllt den Platzhalter <span id="nav-auth">
 // entsprechend — entweder mit "Anmelden" oder mit Name + "Abmelden".
@@ -16,7 +23,7 @@ async function renderNavAuth() {
 
     const user = await response.json();
     slot.innerHTML = `
-      <span>${user.name}</span>
+      span>${escapeHtml(user.name)}</span>
       <button id="logout-btn" class="btn btn-outline">Abmelden</button>
     `;
 
@@ -31,6 +38,7 @@ async function renderNavAuth() {
 
 renderNavAuth();
 
+// Footer mit Pflichtlinks (Impressum, Datenschutz) auf jeder Seite
 (function renderFooter() {
   const footer = document.createElement('footer');
   footer.style.cssText = 'text-align:center; padding:24px 16px; font-size:0.85rem;';

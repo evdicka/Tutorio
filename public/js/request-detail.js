@@ -19,9 +19,9 @@ async function loadRequest() {
 
   detailBox.innerHTML = `
     <a href="/requests.html">← Zurück zu den Gesuchen</a>
-    <h2>${r.title}</h2>
-    <p>${r.author_name} · <span class="tag">${r.subject_name}</span> · ${time}</p>
-    <p>${r.description}</p>
+    <h2>${escapeHtml(r.title)}</h2>
+    <p>${escapeHtml(r.author_name)} · <span class="tag">${escapeHtml(r.subject_name)}</span> · ${time}</p>
+    <p>${escapeHtml(r.description)}</p>
   `;
 
   repliesBox.innerHTML = r.replies.length > 0
@@ -33,8 +33,8 @@ function renderReply(reply) {
   const time = new Date(reply.created_at).toLocaleString('de-DE');
   return `
     <div class="reply">
-      <p>${reply.content}</p>
-      <small>${reply.author_name} · ${time}</small>
+      <p>${escapeHtml(reply.content)}</p>
+      <small>${escapeHtml(reply.author_name)} · ${time}</small>
     </div>
   `;
 }

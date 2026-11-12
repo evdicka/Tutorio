@@ -39,6 +39,7 @@ CREATE TABLE ratings (
     stars TINYINT UNSIGNED NOT NULL CHECK (stars BETWEEN 1 AND 5),
     comment TEXT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_ratings_tutor_rater (tutor_id, rater_id),
     FOREIGN KEY (tutor_id) REFERENCES tutor_profiles(user_id) ON DELETE CASCADE,
     FOREIGN KEY (rater_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

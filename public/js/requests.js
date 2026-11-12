@@ -8,7 +8,7 @@ const newSubjectSelect = document.getElementById('new-subject');
 async function loadSubjectsIntoSelects() {
   const response = await fetch('/api/subjects/list.php');
   const subjects = await response.json();
-  const options = subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+  const options = subjects.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
 
   subjectFilter.insertAdjacentHTML('beforeend', options);
   newSubjectSelect.insertAdjacentHTML('beforeend', options);
@@ -35,9 +35,9 @@ function renderRequestCard(r) {
   const time = new Date(r.created_at).toLocaleString('de-DE');
   return `
     <div class="request-card">
-      <h3><a href="/request.html?id=${r.id}">${r.title}</a></h3>
-      <p>${r.author_name} · <span class="tag">${r.subject_name}</span> · ${time}</p>
-      <p>${r.description}</p>
+      <h3><a href="/request.html?id=${r.id}">${escapeHtml(r.title)}</a></h3>
+      <p>${escapeHtml(r.author_name)} · <span class="tag">${escapeHtml(r.subject_name)}</span> · ${time}</p>
+      <p>${escapeHtml(r.description)}</p>
       <p>${r.reply_count} Antworten</p>
     </div>
   `;

@@ -7,7 +7,7 @@ async function loadSubjectsIntoFilter() {
   const response = await fetch('/api/subjects/list.php');
   const subjects = await response.json();
 
-  const options = subjects.map((s) => `<option value="${s.id}">${s.name}</option>`);
+  const options = subjects.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`);
   subjectFilter.insertAdjacentHTML('beforeend', options.join(''));
 }
 
@@ -38,15 +38,16 @@ function renderTutorCard(tutor) {
     ? `⭐ ${tutor.rating.avg} (${tutor.rating.count} Bewertungen)`
     : 'Noch keine Bewertungen';
 
-  const subjectTags = tutor.subjects.map((s) => `<span class="tag">${s.name}</span>`).join(' ');
+  const subjectTags = tutor.subjects.map((s) => `<span class="tag">${escapeHtml(s.name)}</span>`).join(' ');
 
   return `
     <div class="tutor-card">
-      <h3>${tutor.display_name}</h3>
+      <h3>${escapeHtml(tutor.display_name)}</h3>
       <p>${ratingText}</p>
       <div class="subjects">${subjectTags}</div>
-      <p>${tutor.description ?? ''}</p>
-      <p><strong>Verfügbar:</strong> ${tutor.availability ?? '–'}</p>
+      <p>${escapeHtml(tutor.description)}</p>
+      <p><strong>Verfügbar:</strong> ${escapeHtml(tutor.availability ?? '–')}</p>
+      <p><strong>Preismodell:</strong> ${escapeHtml(tutor.price_model ?? '–')}</p>
       <a href="/tutor.html?id=${tutor.tutor_id}" class="btn btn-primary">Profil ansehen</a>
     </div>
   `;
