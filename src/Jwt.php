@@ -52,6 +52,28 @@ final class Jwt
         return $payload;
     }
 
+    /**
+     * Dekodiert ein JWT OHNE Signaturprüfung (Schlüssel von Digikabu unbekannt).
+     * Nur für Tokens verwenden, die direkt von Digikabu per HTTPS kommen,
+     * niemals für Tokens vom Client.
+     */
+    public static function decodeUnverified(string $token): array
+    {
+        $parts = explode('.', $token);
+
+        if (count($parts) !== 3) {
+            throw new InvalidArgumentException('Ungültiges JWT-Format.');
+        }
+
+        $payload = json_decode(self::base64UrlDecode($parts[1]), true, 512, JSON_THROW_ON_ERROR);
+
+        if (isset($payload['exp']) && time() >= (int) $payload['exp']) {
+            throw new UnexpectedValueException('JWT ist abgelaufen.');
+        }
+
+        return $payload;
+    }
+
     private static function sign(string $data, string $secret): string
     {
         return hash_hmac('sha256', $data, $secret, true);

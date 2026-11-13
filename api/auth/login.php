@@ -16,25 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-$email = trim((string) ($input['email'] ?? ''));
+$username = trim((string) ($input['username'] ?? ''));
 $password = (string) ($input['password'] ?? '');
 
-if ($email === '' || $password === '') {
+if ($username === '' || $password === '') {
     http_response_code(400);
-    echo json_encode(['error' => 'E-Mail und Passwort erforderlich.']);
+    echo json_encode(['error' => 'Benutzername und Passwort erforderlich.']);
     exit;
 }
 
 try {
-    $service = new AuthService(
+     $service = new AuthService(
         Database::connection(),
         getenv('DIGIKABU_BASE_URL'),
-        getenv('DIGIKABU_SHARED_SECRET'),
         getenv('TUTORIO_JWT_SECRET'),
         (int) getenv('TUTORIO_JWT_TTL')
     );
 
-    $result = $service->login($email, $password);
+    $result = $service->login($username, $password);
 
     setcookie('tutorio_token', $result['token'], [
         'expires' => time() + (int) getenv('TUTORIO_JWT_TTL'),
@@ -46,7 +45,7 @@ try {
     echo json_encode(['user' => $result['user']]);
 } catch (DigikabuAuthException $e) {
     http_response_code(401);
-    echo json_encode(['error' => 'E-Mail oder Passwort falsch.']);
+    echo json_encode(['error' => 'Benutzername oder Passwort falsch.']);
 } catch (Throwable $e) {
     error_log('[Auth:login] ' . $e->getMessage());
     http_response_code(500);

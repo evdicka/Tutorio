@@ -13,108 +13,118 @@ final class AuthService
     public function __construct(
         private PDO $db,
         private string $digikabuBaseUrl,
-        private string $digikabuSharedSecret,
         private string $tutorioSecret,
         private int $tutorioTtl
     ) {
     }
 
-    public function login(string $email, string $password): array
+    public function login(string $username, string $password): array
     {
-        $digikabuJwt = $this->requestDigikabuToken($email, $password);
+        $digikabuJwt = $this->requestDigikabuToken($username, $password);
 
-        // Schritt: Digikabu-JWT NICHT blind vertrauen — Signatur und exp
-        // prüfen, bevor der Payload verwendet wird.
-        $payload = Jwt::verifyAndDecode($digikabuJwt, $this->digikabuSharedSecret);
+        // Schlüssel von Digikabu ist unbekannt -> Signatur kann nicht geprüft werden.
+        // Das Token kommt direkt von Digikabu (HTTPS, Backend -> Backend), nicht vom Client.
+        $payload = Jwt::decodeUnverified($digikabuJwt);
 
-        $name = $payload['name'] ?? throw new UnexpectedValueException('Digikabu-Token ohne "name".');
-        $role = $this->mapRole($payload['role'] ?? throw new UnexpectedValueException('Digikabu-Token ohne "role".'));
+        $userlevel = (string) ($payload['userlevel'] ?? '');
+        $klasse = isset($payload['klasse']) ? (string) $payload['klasse'] : null;
 
-        $userId = $this->findOrCreateUser($email, $name, $role);
+        $user = $this->findOrCreateUser($username, $this->mapRole($userlevel));
 
-        $tutorioPayload = [
-            'sub' => $userId,
-            'name' => $name,
-            'role' => $role,
-        ];
-
-        $token = Jwt::encode($tutorioPayload, $this->tutorioSecret, $this->tutorioTtl);
+        // Eigenes JWT mit Daten aus Digikabu; das Digikabu-JWT wird verworfen.
+        $token = Jwt::encode([
+            'sub' => $user['id'],
+            'name' => $username,
+            'role' => $user['role'],
+            'userlevel' => $userlevel,
+            'klasse' => $klasse,
+        ], $this->tutorioSecret, $this->tutorioTtl);
 
         return [
             'token' => $token,
-            'user' => ['id' => $userId, 'name' => $name, 'role' => $role],
+            'user' => ['id' => $user['id'], 'name' => $username, 'role' => $user['role']],
         ];
     }
 
-    private function requestDigikabuToken(string $email, string $password): string
+    private function requestDigikabuToken(string $username, string $password): string
     {
-        // Nur für lokales Testen ohne echtes Digikabu (siehe .env: AUTH_STUB_MODE).
-        // WICHTIG: vor dem echten Einsatz AUTH_STUB_MODE aus der .env entfernen!
+        // Nur für lokales Testen ohne echtes Digikabu (.env: AUTH_STUB_MODE=true).
         if (getenv('AUTH_STUB_MODE') === 'true') {
-            return $this->stubDigikabuToken($email, $password);
+            return $this->stubDigikabuToken($username, $password);
         }
 
-        $ch = curl_init($this->digikabuBaseUrl . '/api/authenticate');
+        $ch = curl_init(rtrim($this->digikabuBaseUrl, '/') . '/api/authenticate');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_POSTFIELDS => json_encode(['username' => $email, 'password' => $password]),
+            CURLOPT_POSTFIELDS => json_encode(['userName' => $username, 'password' => $password]),
             CURLOPT_TIMEOUT => 10,
         ]);
 
         $response = curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($response === false || $status !== 200) {
+            error_log('[Digikabu] HTTP ' . $status . ' ' . $curlError);
             throw new DigikabuAuthException('Anmeldung bei Digikabu fehlgeschlagen.');
         }
 
-        $data = json_decode($response, true);
-        $token = $data['token'] ?? null;
+        // Digikabu antwortet laut Konzept mit dem nackten JWT; falls es doch
+        // als JSON {"token": "..."} kommt, wird das ebenfalls akzeptiert.
+        $body = trim((string) $response);
+        $token = str_starts_with($body, '{')
+            ? (json_decode($body, true)['token'] ?? null)
+            : trim($body, "\" \t\n\r");
 
-        if (!is_string($token)) {
-            throw new DigikabuAuthException('Digikabu-Antwort enthielt kein Token.');
+        if (!is_string($token) || substr_count($token, '.') !== 2) {
+            error_log('[Digikabu] Unerwartetes Antwortformat.');
+            throw new DigikabuAuthException('Digikabu-Antwort enthielt kein gültiges Token.');
         }
 
         return $token;
     }
 
     /**
-     * Simuliert eine Digikabu-Antwort: erzeugt ein JWT, so wie Digikabu es
-     * schicken würde, und signiert es korrekt mit dem gemeinsamen Secret —
-     * damit auch die Signaturprüfung in login() echt getestet wird.
-     * Passwort "tutor" -> Rolle Tutor, alles andere -> Rolle Schüler.
+     * Simuliert eine Digikabu-Antwort mit dem Payload-Aufbau aus dem Konzept.
+     * Passwort "tutor" -> userlevel "Tutor", alles andere -> "Schueler".
      */
-    private function stubDigikabuToken(string $email, string $password): string
+    private function stubDigikabuToken(string $username, string $password): string
     {
-        $role = ($password === 'tutor') ? 'Tutor' : 'Schueler';
-        $name = explode('@', $email)[0];
-
-        return Jwt::encode(['name' => $name, 'role' => $role], $this->digikabuSharedSecret, 3600);
+        return Jwt::encode([
+            'userlevel' => ($password === 'tutor') ? 'Tutor' : 'Schueler',
+            'klasse' => 'BFI11A',
+            'nbf' => time(),
+        ], 'stub-secret', 3600);
     }
 
-    private function mapRole(string $digikabuRole): string
+    private function mapRole(string $userlevel): string
     {
-        return strtolower($digikabuRole) === 'tutor' ? 'tutor' : 'suchend';
+        return strtolower($userlevel) === 'tutor' ? 'tutor' : 'suchend';
     }
 
-    private function findOrCreateUser(string $email, string $name, string $role): int
+    /**
+     * Neuer Nutzer: Rolle aus Digikabu-userlevel. Bestehender Nutzer: Rolle aus
+     * der Datenbank (so kann ein Schüler dort manuell zum Tutor gemacht werden,
+     * da Digikabu keinen Tutor-Level kennt).
+     */
+    private function findOrCreateUser(string $username, string $role): array
     {
-        $stmt = $this->db->prepare('SELECT id FROM users WHERE school_email = :email');
-        $stmt->execute(['email' => $email]);
+        $stmt = $this->db->prepare('SELECT id, role FROM users WHERE school_email = :username');
+        $stmt->execute(['username' => $username]);
         $existing = $stmt->fetch();
 
         if ($existing !== false) {
-            return (int) $existing['id'];
+            return ['id' => (int) $existing['id'], 'role' => $existing['role']];
         }
 
         $stmt = $this->db->prepare('
-            INSERT INTO users (school_email, display_name, role) VALUES (:email, :name, :role)
+            INSERT INTO users (school_email, display_name, role) VALUES (:username, :name, :role)
         ');
-        $stmt->execute(['email' => $email, 'name' => $name, 'role' => $role]);
+        $stmt->execute(['username' => $username, 'name' => $username, 'role' => $role]);
 
-        return (int) $this->db->lastInsertId();
+        return ['id' => (int) $this->db->lastInsertId(), 'role' => $role];
     }
 }
